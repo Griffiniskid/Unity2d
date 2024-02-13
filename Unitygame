@@ -1,0 +1,267 @@
+using UnityEngine;
+
+public class Player : MonoBehaviour
+{
+    public float speed = 5f;
+    
+    void Update()
+    {
+        float x = Input.GetAxis("Horizontal") * speed;
+        float y = Input.GetAxis("Vertical") * speed;
+
+        transform.position += new Vector3(x, y, 0) * Time.deltaTime;
+        
+        transform.position = new Vector3(
+           Mathf.Clamp(transform.position.x, -8, 8),
+           Mathf.Clamp(transform.position.y, -4.5f, 4.5f),
+           transform.position.z);
+    }
+}
+
+
+
+
+
+public class Enemy : MonoBehaviour 
+{
+    public float speed = 1f;
+    
+    void Update()
+    {
+        transform.position += Vector3.down * speed * Time.deltaTime;
+        
+        if (transform.position.y < -8) {
+            Destroy(gameObject);
+        } 
+    }
+
+    void OnTriggerEnter2D(Collider2D other) 
+    {
+        if (other.tag == "Player") {
+            other.GetComponent<Player>().Damage();
+            Destroy(gameObject); 
+        }
+    }
+}
+
+public class Player : MonoBehaviour
+{
+    public int health = 3;
+    
+    public void Damage()
+    {
+        health--;
+        if (health <= 0) {
+            Die(); 
+        }
+    }
+
+    void Die()
+    {
+        // логіка смерті гравця
+    }
+
+    void OnGUI()
+    {
+        GUI.Label(new Rect(10, 10, 100, 40), "Здоров'я: " + health);  
+    }
+}
+
+
+
+
+
+public class Powerup : MonoBehaviour
+{
+    public PowerupType type;
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.tag == "Player")
+        {
+            switch (type)
+            {
+                case PowerupType.Speed:
+                    other.GetComponent<Player>().speed *= 1.5f;
+                    break;
+                case PowerupType.Shield: 
+                    other.GetComponent<Player>().shield = true;
+                    break;
+            }
+            Destroy(gameObject);
+        } 
+    }
+}
+
+public enum PowerupType
+{
+    Speed, Shield
+}
+
+public class Player : MonoBehaviour
+{
+    public float speed = 5f;
+    public bool shield;
+    
+    void Update()
+    {
+        // логіка руху гравця 
+    }
+    
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        if (col.gameObject.tag == "Enemy" && !shield)
+        {
+            Damage(); 
+        }
+    }
+}
+
+
+
+
+
+public class Player : MonoBehaviour
+{
+    public int score;
+    
+    void OnGUI() 
+    {
+        GUI.Label(new Rect(10, 40, 100, 40), "Очки: " + score);
+    }
+}
+
+public class Enemy : MonoBehaviour
+{
+    void OnDestroy()
+    {
+        FindObjectOfType<Player>().score += 10; 
+    }
+}
+
+
+
+
+
+public enum LevelDifficulty {
+    Easy,
+    Medium,
+    Hard
+}
+
+public class GameManager : MonoBehaviour {
+
+    public LevelDifficulty difficulty;
+
+    public void SetDifficulty(LevelDifficulty diff) {
+        difficulty = diff;
+        
+        if (difficulty == LevelDifficulty.Easy) {
+            // налаштування легкого рівня
+        }
+        else if (difficulty == LevelDifficulty.Medium) {
+            // налаштування середнього рівня 
+        }
+        else if (difficulty == LevelDifficulty.Hard) {
+            // налаштування важкого рівня
+        }
+    }
+}
+
+public class Player : MonoBehaviour {
+
+    public int score;
+
+    void Update() {
+        if (score >= 100 && score < 200) {
+            FindObjectOfType<GameManager>().SetDifficulty(LevelDifficulty.Medium); 
+        }
+        else if (score >= 200) {
+            FindObjectOfType<GameManager>().SetDifficulty(LevelDifficulty.Hard);
+        }
+    }
+}
+
+
+
+
+
+public class MainMenu : MonoBehaviour {
+
+    public GameObject mainMenuUI;
+    public GameObject settingsMenuUI;
+    
+    public void PlayGame() {
+        // завантаження сцени гри
+    }
+
+    public void QuitGame() {
+        Application.Quit();
+    }
+
+    public void SettingsMenu() {
+        mainMenuUI.SetActive(false);
+        settingsMenuUI.SetActive(true);
+    }
+
+    public void SettingsBack() {
+        mainMenuUI.SetActive(true);
+        settingsMenuUI.SetActive(false);   
+    }
+}
+
+
+
+
+
+// Клас для збереження даних
+[System.Serializable]
+public class SaveData 
+{
+    public int playerLevel;
+    public int playerLives;
+    public int playerScore;
+}
+
+// Компонент для збереження та завантаження
+public class SaveSystem : MonoBehaviour 
+{
+    public Player player;
+
+    public void Save()
+    {
+        SaveData data = new SaveData();
+        data.playerLevel = player.level; 
+        data.playerLives = player.lives;
+        data.playerScore = player.score;
+        
+        string json = JsonUtility.ToJson(data);
+        File.WriteAllText(GetSaveFilePath(), json);
+    }
+
+    public void Load()
+    {
+        if (File.Exists(GetSaveFilePath())) {
+            string json = File.ReadAllText(GetSaveFilePath());
+            SaveData loadedData = JsonUtility.FromJson<SaveData>(json);
+
+            player.level = loadedData.playerLevel;
+            player.lives = loadedData.playerLives; 
+            player.score = loadedData.playerScore;
+        }
+    }
+
+    string GetSaveFilePath() 
+    {
+        return Application.dataPath + "/save.json";  
+    }
+}
+
+
+
+
+
+If (Input.GetAxis("Horizontal") > 0)  
+    animator.Play("WalkRight");
+If (PlayerInRange)  
+    animator.SetTrigger("Attack");
